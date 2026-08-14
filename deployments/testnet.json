@@ -1,0 +1,22 @@
+{
+  "chainId": 16602,
+  "name": "0g-testnet-galileo",
+  "rpcUrl": "https://evmrpc-testnet.0g.ai",
+  "og": {
+    "ledgerManager": "0xE70830508dAc0A97e6c087c75f402f9Be669E406",
+    "inferenceServing": "0xa79F4c8311FF93C06b8CfB403690cc987c93F91E",
+    "source": "0glabs/0g-serving-contract deployments/zgTestnetV4, verified against eth_getCode at time of recording"
+  },
+  "safe": {
+    "singleton": null,
+    "proxyFactory": null,
+    "deployTx": null,
+    "deployedAt": null,
+    "note": "Safe v1.4.1 is not deployed on this network. Deployed independently by this repo's own deploy script rather than via the shared canonical address, since the canonical singleton-factory presigned transaction is not available for this chain ID."
+  },
+  "warrant": {
+    "registry": null,
+    "deployTx": null,
+    "deployedAt": null
+  }
+}

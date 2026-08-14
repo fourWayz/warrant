@@ -1,0 +1,23 @@
+{
+  "chainId": 16661,
+  "name": "0g-mainnet",
+  "rpcUrl": "https://evmrpc.0g.ai",
+  "og": {
+    "ledgerManager": null,
+    "inferenceServing": null,
+    "note": "Not yet pulled and verified for mainnet. Testnet addresses (see testnet.json) were verified from 0glabs/0g-serving-contract's zgTestnetV4 deployment artifacts; the equivalent mainnet folder must be located and each address confirmed against eth_getCode before use. Do not assume parity with testnet addresses."
+  },
+  "safe": {
+    "singleton": "0x29fcB43b46531BcA003ddC8FCB67FFE91900C762",
+    "proxyFactory": "0x4e1DCf7AD4e460CfD30791CCC4F9c8a4f820ec67",
+    "version": "1.4.1",
+    "source": "safe-global/safe-deployments canonical registry, confirmed live via eth_getCode",
+    "deployTx": null,
+    "deployedAt": null
+  },
+  "warrant": {
+    "registry": null,
+    "deployTx": null,
+    "deployedAt": null
+  }
+}
