@@ -8,15 +8,17 @@
     "source": "0glabs/0g-serving-contract deployments/zgTestnetV4, verified against eth_getCode at time of recording"
   },
   "safe": {
-    "singleton": null,
-    "proxyFactory": null,
-    "deployTx": null,
-    "deployedAt": null,
-    "note": "Safe v1.4.1 is not deployed on this network. Deployed independently by this repo's own deploy script rather than via the shared canonical address, since the canonical singleton-factory presigned transaction is not available for this chain ID."
+    "singleton": "0x8960dC2b415301C8CeE84109F46FcD134A6050A9",
+    "proxyFactory": "0xdcE5c441ea62c7A0aFd90D48083e9B7617f3DA08",
+    "version": "1.4.1",
+    "singletonDeployTx": "0x112d68e459a09f22e3990914a295fba21c2ac6da3809579de86227dfcb3a5663",
+    "proxyFactoryDeployTx": "0x55ecb399ed820dbd184ce3397eec2cbab57c03f54b62653dfafb5c6ddc426da3",
+    "deployedAt": "2026-08-26T18:06:22Z",
+    "note": "Self-deployed via contracts/script/DeploySafeInfra.s.sol, not the shared canonical address, since the canonical singleton-factory presigned transaction is not available for this chain ID. Real, unmodified Safe v1.4.1 bytecode, verified against eth_getCode."
   },
   "warrant": {
-    "registry": null,
-    "deployTx": null,
-    "deployedAt": null
+    "registry": "0xbd245E37b938D459C08f1c1f6F26028FDd8A98eD",
+    "deployTx": "0xaf1aa0c192ce3d4262467bbb7b28d890e1cdd9ebd05646262194a29f10fac92c",
+    "deployedAt": "2026-08-26T18:06:22Z"
   }
 }
