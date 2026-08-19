@@ -18,6 +18,12 @@ interface ILedgerManager {
     /// This is the single call WarrantModule gates.
     function transferFund(address provider, string calldata serviceName, uint256 amount) external;
 
+    /// @notice Deposits `msg.value` into `recipient`'s main ledger. Anyone
+    /// may call this on behalf of anyone else — used to fund a Safe's
+    /// ledger without routing the deposit through the Safe's own
+    /// execTransaction path, since a deposit carries no spend authority.
+    function depositFundFor(address recipient) external payable;
+
     function getLedger(address user) external view returns (Ledger memory);
 
     function MIN_ACCOUNT_BALANCE() external view returns (uint256);

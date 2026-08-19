@@ -42,6 +42,22 @@ deployments/   Version-controlled record of every deployed address, per chain
 
 ## Status
 
-M0–M2: repository scaffold, testnet infrastructure, `WarrantRegistry`,
-`WarrantModule`, and the adversarial test suite. Compute integration, DA/Storage
-archival, ERC-8004 interop, and the public explorer are later milestones.
+M0–M3 complete. M0–M2: repository scaffold, testnet infrastructure,
+`WarrantRegistry`, `WarrantModule`, and the adversarial test suite (46
+tests). M3: Warrant's core security boundary proven live on real 0G Galileo
+contracts (see `docs/m3-tracks.md`), and a compatibility investigation into
+0G Compute's own request/settlement flow (see
+`docs/compute-compatibility-finding.md`).
+
+**M3 conclusion:** Warrant's core security boundary is proven on real 0G
+infrastructure — a Safe-controlled agent cannot authorize provider funding
+outside its owner-defined Warrant policy. 0G Compute's current inference
+authentication requires the funded account itself to possess an ECDSA
+private key, making Safe-based inference authentication incompatible with
+the current public Compute flow. Warrant does not claim to control native
+Compute settlement; the incompatibility is documented as an ecosystem
+integration boundary, not hidden or worked around.
+
+DA archival, Storage, ERC-8004 interop, the public explorer, and any
+Warrant extension (delegated capability graphs, fine-tune lineage, provider
+bonding) are later milestones, not started.

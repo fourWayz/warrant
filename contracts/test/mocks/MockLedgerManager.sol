@@ -24,6 +24,10 @@ contract MockLedgerManager is ILedgerManager {
         mainLedger[user] += msg.value;
     }
 
+    function depositFundFor(address recipient) external payable override {
+        mainLedger[recipient] += msg.value;
+    }
+
     function transferFund(address provider, string calldata serviceName, uint256 amount) external override {
         if (amount == 0) revert ZeroAmountNotAllowed();
         if (amount < MIN_TRANSFER_AMOUNT_) revert MinimumTransferRequired(amount, MIN_TRANSFER_AMOUNT_);
