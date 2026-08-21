@@ -40,3 +40,21 @@ tooling should check and the documentation states loudly:
 The owner retains sovereign override authority over their own Safe at all
 times. Warrant's enforcement boundary is the delegated agent key, not the
 wallet owner — a deliberate choice, not an oversight.
+
+## M4 addition — the reconciliation layer changes nothing above
+
+`sdk/warrant-client`'s reconciler (`docs/m4-reconciliation.md`) is a
+read-only correlator of public chain events. It cannot move funds, cannot
+alter policy, and is not part of the authorization path in any way — every
+row in both tables above holds exactly as written whether or not the
+reconciler exists, runs, or is correct. Its only failure mode is producing
+a misleading *report*, never a bad state transition, and that failure mode
+is itself bounded: it distinguishes "confidently matched" from "a
+settlement exists but couldn't be confidently attributed"
+(`AUTHORIZED_SETTLEMENT_UNCORRELATED`) rather than guessing.
+
+It also does not narrow the "provider returns a bad or unusable response"
+row above — a reconciliation report showing `AUTHORIZED_AND_SETTLED` is a
+statement about correlation, never about compute quality. See
+`docs/m4-reconciliation.md` for the authorized/funded/settled/correlated
+distinction this rests on.

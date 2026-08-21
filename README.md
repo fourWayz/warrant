@@ -33,21 +33,23 @@ explicitly out of scope.
 
 ```
 contracts/     Foundry project — WarrantRegistry, WarrantModule, tests, deploy scripts
-sdk/           TypeScript client for creating and querying warrants
-apps/explorer  Public, read-only verifier
-services/indexer  Log-decoding helper for the explorer
+sdk/           warrant-client: dependency-free reconciliation library (M4)
+apps/explorer  Public, read-only verifier (not started)
+services/indexer  Log-decoding helper for the explorer (not started)
 docs/          Threat model, bypass analysis, design notes
 deployments/   Version-controlled record of every deployed address, per chain
 ```
 
 ## Status
 
-M0–M3 complete. M0–M2: repository scaffold, testnet infrastructure,
+M0–M4 complete. M0–M2: repository scaffold, testnet infrastructure,
 `WarrantRegistry`, `WarrantModule`, and the adversarial test suite (46
 tests). M3: Warrant's core security boundary proven live on real 0G Galileo
 contracts (see `docs/m3-tracks.md`), and a compatibility investigation into
 0G Compute's own request/settlement flow (see
-`docs/compute-compatibility-finding.md`).
+`docs/compute-compatibility-finding.md`). M4: the read-only reconciliation
+layer (`sdk/warrant-client`) that correlates a Warrant-authorized transfer
+against native 0G settlement events — see `docs/m4-reconciliation.md`.
 
 **M3 conclusion:** Warrant's core security boundary is proven on real 0G
 infrastructure — a Safe-controlled agent cannot authorize provider funding
@@ -58,6 +60,15 @@ the current public Compute flow. Warrant does not claim to control native
 Compute settlement; the incompatibility is documented as an ecosystem
 integration boundary, not hidden or worked around.
 
-DA archival, Storage, ERC-8004 interop, the public explorer, and any
-Warrant extension (delegated capability graphs, fine-tune lineage, provider
-bonding) are later milestones, not started.
+**M4 conclusion:** Warrant verifies authorization and settlement
+correlation. It does not verify compute quality. The reconciliation layer
+never moves funds, never alters policy, and its own failure or absence
+cannot weaken anything M1–M3 already proved — see
+`docs/m4-reconciliation.md` for the authorized/funded/settled/correlated
+distinction this rests on.
+
+0G DA, deeper ERC-7857 integration, ERC-8004 interop, the public explorer,
+a real 0G Storage uploader, and any Warrant extension (delegated capability
+graphs, fine-tune lineage, provider bonding) remain later milestones, not
+started — see the M4 architecture reassessment for why each was deferred
+or rejected.
