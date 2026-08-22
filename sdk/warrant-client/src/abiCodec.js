@@ -46,9 +46,24 @@ function decodeDynamicBytesAt(dataHex, byteOffset) {
   return '0x' + hex
 }
 
+/**
+ * Decodes a UTF-8 string from a hex byte string. Uses `TextDecoder` rather
+ * than Node's `Buffer` specifically so this module runs unmodified in a
+ * browser as well as Node (both have `TextDecoder` as a global) — the
+ * reconciliation core has no reason to depend on a Node-only API.
+ */
+function hexToUtf8(hex) {
+  const clean = strip0x(hex)
+  const bytes = new Uint8Array(clean.length / 2)
+  for (let i = 0; i < bytes.length; i++) {
+    bytes[i] = parseInt(clean.slice(i * 2, i * 2 + 2), 16)
+  }
+  return new TextDecoder().decode(bytes)
+}
+
 function decodeDynamicStringAt(dataHex, byteOffset) {
   const bytesHex = decodeDynamicBytesAt(dataHex, byteOffset)
-  return Buffer.from(strip0x(bytesHex), 'hex').toString('utf8')
+  return hexToUtf8(bytesHex)
 }
 
 /**
@@ -101,6 +116,7 @@ module.exports = {
   wordToBigInt,
   wordToBool,
   wordToBytes32,
+  hexToUtf8,
   decodeDynamicBytesAt,
   decodeDynamicStringAt,
   decodeSettleFeesWithTEECalldata,

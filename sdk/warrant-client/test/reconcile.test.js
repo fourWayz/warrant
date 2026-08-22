@@ -1,7 +1,7 @@
 const test = require('node:test')
 const assert = require('node:assert/strict')
 
-const { reconcile, STATUS } = require('../src/reconcile')
+const { reconcile, reconcileWarrant, STATUS } = require('../src/reconcile')
 const { createFakeChainReader } = require('./fakeChainReader')
 
 const trackAFundingReceipt = require('./fixtures/trackA-funding-receipt.json')
@@ -180,4 +180,41 @@ test('multiple providers / multiple warrants on the same Safe reconcile independ
   assert.equal(second.authorizedAmount, 20000000000000000n)
   assert.equal(first.status, STATUS.AUTHORIZED_ONLY)
   assert.equal(second.status, STATUS.AUTHORIZED_ONLY)
+})
+
+test('reconcileWarrant finds and reconciles every transfer for a warrant via one indexed log query', async () => {
+  const transferLog = trackAFundingReceipt.logs.find(
+    (l) => l.topics[0].toLowerCase() === '0x0425e19fb2c0206dac5e56431bff70d1977603f5a3b7691fff6465870874d8c9'
+  )
+  const reader = createFakeChainReader({
+    receipts: { [REAL_FUNDING_TX]: trackAFundingReceipt },
+    callResponses: { [`${MODULE.toLowerCase()}:${SAFE_GETTER_SELECTOR}`]: safeGetterResponse() },
+    logs: [transferLog], // this is exactly what an indexed eth_getLogs(warrantId=1) query returns
+  })
+
+  const { summary, reports } = await reconcileWarrant(reader, {
+    warrantId: 1,
+    moduleAddress: MODULE,
+    inferenceServingAddress: INFERENCE_SERVING,
+  })
+
+  assert.equal(summary.warrantId, 1n)
+  assert.equal(summary.transferCount, 1)
+  assert.equal(summary.totalAuthorized, 10000000000000000n)
+  assert.equal(summary.totalSettled, 0n)
+  assert.equal(summary.countByStatus[STATUS.AUTHORIZED_ONLY], 1)
+  assert.equal(reports.length, 1)
+  assert.equal(reports[0].transferTxHash, REAL_FUNDING_TX)
+})
+
+test('reconcileWarrant reports an empty summary for a warrant with no transfers', async () => {
+  const reader = createFakeChainReader({ logs: [] })
+  const { summary, reports } = await reconcileWarrant(reader, {
+    warrantId: 999,
+    moduleAddress: MODULE,
+    inferenceServingAddress: INFERENCE_SERVING,
+  })
+  assert.equal(summary.transferCount, 0)
+  assert.equal(summary.totalAuthorized, 0n)
+  assert.deepEqual(reports, [])
 })

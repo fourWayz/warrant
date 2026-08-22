@@ -208,4 +208,71 @@ async function reconcile(reader, params) {
   }
 }
 
-module.exports = { reconcile, STATUS }
+/**
+ * Reconciles every transfer ever authorized under a given warrant, by
+ * finding every WarrantModule.TransferExecuted log carrying that warrantId
+ * (indexed, so this is one direct `eth_getLogs` query, not a scan) and
+ * reconciling each one individually with `reconcile()`.
+ *
+ * This is pure composition — no new correlation logic, no new trust
+ * surface, just the existing single-transfer reconciliation run once per
+ * transfer and rolled into one summary. Reuses exactly what already exists
+ * rather than duplicating it.
+ *
+ * @param {object} reader
+ * @param {object} params
+ * @param {bigint|number|string} params.warrantId
+ * @param {string} params.moduleAddress
+ * @param {string} params.inferenceServingAddress
+ * @param {string} [params.fromBlock] - lower bound for finding transfers, defaults to genesis
+ * @param {string} [params.searchToBlock] - upper bound for both searches, defaults to 'latest'
+ * @returns {Promise<{ summary: object, reports: object[] }>}
+ */
+async function reconcileWarrant(reader, params) {
+  const { warrantId, moduleAddress, inferenceServingAddress, fromBlock, searchToBlock } = params
+  const warrantIdTopic = '0x' + BigInt(warrantId).toString(16).padStart(64, '0')
+
+  const transferLogs = await reader.getLogs({
+    address: moduleAddress,
+    topics: [TOPICS.TRANSFER_EXECUTED, null, warrantIdTopic],
+    fromBlock: fromBlock ?? '0x0',
+    toBlock: searchToBlock,
+  })
+
+  const reports = []
+  for (const log of transferLogs) {
+    const report = await reconcile(reader, {
+      transferTxHash: log.transactionHash,
+      moduleAddress,
+      inferenceServingAddress,
+      searchToBlock,
+    })
+    reports.push(report)
+  }
+
+  const countByStatus = {
+    [STATUS.AUTHORIZED_ONLY]: 0,
+    [STATUS.AUTHORIZED_AND_SETTLED]: 0,
+    [STATUS.AUTHORIZED_SETTLEMENT_UNCORRELATED]: 0,
+  }
+  let totalAuthorized = 0n
+  let totalSettled = 0n
+  for (const r of reports) {
+    countByStatus[r.status]++
+    totalAuthorized += r.authorizedAmount
+    if (r.settledAmount !== null) totalSettled += r.settledAmount
+  }
+
+  return {
+    summary: {
+      warrantId: BigInt(warrantId),
+      transferCount: reports.length,
+      totalAuthorized,
+      totalSettled,
+      countByStatus,
+    },
+    reports,
+  }
+}
+
+module.exports = { reconcile, reconcileWarrant, STATUS }

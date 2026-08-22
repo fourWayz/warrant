@@ -31,15 +31,38 @@ data — see `test/fakeChainReader.js`.
 ## Usage
 
 ```js
-const { reconcile, createJsonRpcChainReader } = require('@warrant/client')
+const { reconcile, reconcileWarrant, createJsonRpcChainReader } = require('@warrant/client')
 
 const reader = createJsonRpcChainReader('https://evmrpc-testnet.0g.ai')
+
+// A single transfer:
 const report = await reconcile(reader, {
   transferTxHash: '0x...',
   moduleAddress: '0x...',       // the WarrantModule that authorized the transfer
   inferenceServingAddress: '0x...',
 })
+
+// Every transfer ever authorized under one warrant, plus a rolled-up summary:
+const { summary, reports } = await reconcileWarrant(reader, {
+  warrantId: 1,
+  moduleAddress: '0x...',
+  inferenceServingAddress: '0x...',
+})
 ```
+
+## CLI
+
+```
+node bin/warrant-verify.js --tx 0x635cd6cca736a2df02e8734f5b8fdf6ac54fb795e83356b40207fbd28cea68d2 \
+  --module 0xf47E11f9E499994C96b0C2e9ce1b7978db9416d8
+```
+
+Reads defaults (RPC URL, `InferenceServing` address) from
+`../../deployments/testnet.json`; `--module` has no default since it's a
+per-Safe instance, not shared infrastructure. Run with `--help` for the
+full flag list, `--warrant <id>` for warrant-level reconciliation, and
+`--json` for machine-readable output. Holds no authority — see
+`../../docs/m5-verifier.md`.
 
 ## Testing
 

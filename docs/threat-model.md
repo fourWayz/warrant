@@ -58,3 +58,12 @@ row above — a reconciliation report showing `AUTHORIZED_AND_SETTLED` is a
 statement about correlation, never about compute quality. See
 `docs/m4-reconciliation.md` for the authorized/funded/settled/correlated
 distinction this rests on.
+
+## M5 addition — inspection tooling and fuzzing change nothing above either
+
+`sdk/warrant-client/bin/warrant-verify.js` is a presentation layer over the
+same read-only reconciler — it holds no authority and introduces no new
+trusted party, exactly like the library it wraps. The invariant fuzz suite
+(`contracts/test/adversarial/`) doesn't run against any deployed contract
+at all; it exercises a local Foundry EVM instance to raise confidence in
+the existing rules above, and cannot itself change what those rules are.
