@@ -17,6 +17,15 @@ remappings = [
     "forge-std/=lib/forge-std/src/",
 ]
 
+[invariant]
+# Verified once at Foundry's full defaults (256 runs x 500 calls = 128,000
+# calls per invariant, three invariants, zero violations, ~7 minutes) — see
+# docs/m5-verifier.md. Set lower here so a routine `forge test` stays fast;
+# run with `--match-contract WarrantRegistryInvariantsTest` and no runs/depth
+# override to reproduce the full campaign.
+runs = 100
+depth = 200
+
 [rpc_endpoints]
 og_testnet = "https://evmrpc-testnet.0g.ai"
 og_mainnet = "https://evmrpc.0g.ai"
