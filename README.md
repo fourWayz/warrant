@@ -43,6 +43,35 @@ The CLI reads it directly from 0G Galileo and reports
 honest given the Compute compatibility finding below. Nothing here is
 canned output.
 
+## Deployments
+
+The unmodified, audited `WarrantRegistry` and `WarrantModule` are live on
+both 0G testnet (Galileo) and 0G mainnet. Full records, including every
+deployment transaction hash, are version-controlled in `deployments/`.
+
+| | Mainnet (chain 16661) | Testnet / Galileo (chain 16602) |
+|---|---|---|
+| `WarrantRegistry` | [`0x6bb1c3def8eFa555F59435b2F1D728BC56d6132D`](https://chainscan.0g.ai/address/0x6bb1c3def8eFa555F59435b2F1D728BC56d6132D) | `0xbd245E37b938D459C08f1c1f6F26028FDd8A98eD` |
+| `WarrantModule` | [`0xd3bE7D80bF432B2B162cFbDc9B26404C9F909061`](https://chainscan.0g.ai/address/0xd3bE7D80bF432B2B162cFbDc9B26404C9F909061) | see `deployments/testnet.json` |
+| Safe (agent wallet) | [`0xdBC03a74dF7540bF4bEfA662765da0f2343CC0e7`](https://chainscan.0g.ai/address/0xdBC03a74dF7540bF4bEfA662765da0f2343CC0e7) | self-deployed, see `deployments/testnet.json` |
+| `LedgerManager` (0G, reused) | `0x2dE54c845Cd948B72D2e32e39586fe89607074E3` | `0xE70830508dAc0A97e6c087c75f402f9Be669E406` |
+
+Independently verify the mainnet deployment yourself:
+
+```
+cast code 0x6bb1c3def8eFa555F59435b2F1D728BC56d6132D --rpc-url https://evmrpc.0g.ai
+cast call 0xd3bE7D80bF432B2B162cFbDc9B26404C9F909061 "ledgerManager()(address)" --rpc-url https://evmrpc.0g.ai
+```
+
+The mainnet Safe and Safe/module infrastructure were exercised end-to-end
+(module enabled, warrant created, executor assigned, provider-allowlist and
+budget-cap enforcement checked via free `eth_call` negative tests) — see
+`docs/m6-mainnet-deployment.md` for the full independently-verified
+transaction-by-transaction record. No real mainnet `transferFund` has been
+executed; that path is proven live on testnet only (Track A, M3) — mainnet's
+`MIN_ACCOUNT_BALANCE`/`MIN_TRANSFER_AMOUNT` exceed the funded deployer's
+balance, a disclosed limitation, not a gap papered over.
+
 ## Evidence labeling
 
 Used consistently across this README and `docs/`:
@@ -68,7 +97,7 @@ deployments/   Version-controlled record of every deployed address, per chain
 
 ## Status
 
-M0–M5 complete. M0–M2: repository scaffold, testnet infrastructure,
+M0–M6 complete. M0–M2: repository scaffold, testnet infrastructure,
 `WarrantRegistry`, `WarrantModule`, and the adversarial test suite (46
 tests). M3: Warrant's core security boundary proven live on real 0G Galileo
 contracts (see `docs/m3-tracks.md`), and a compatibility investigation into
@@ -79,7 +108,11 @@ against native 0G settlement events — see `docs/m4-reconciliation.md`. M5:
 a CLI verifier over that same library, warrant-level (not just
 single-transfer) reconciliation, and a property-based fuzz suite proving
 the spend-cap and allowlist invariants across 128,000 randomized calls with
-zero violations — see `docs/m5-verifier.md`.
+zero violations — see `docs/m5-verifier.md`. M6: the same, unmodified
+`WarrantRegistry` and `WarrantModule` deployed to real 0G mainnet, reusing
+mainnet's own live Safe and 0G Compute infrastructure rather than
+redeploying it, with every claim independently re-verified against the
+chain itself — see `docs/m6-mainnet-deployment.md`.
 
 **M3 conclusion:** Warrant's core security boundary is proven on real 0G
 infrastructure — a Safe-controlled agent cannot authorize provider funding
@@ -103,6 +136,13 @@ backend — and the enforcement half has been checked against 128,000
 randomized adversarial call sequences, not just the cases written by hand.
 Neither changes what Warrant claims; both make the existing claims easier
 to verify and harder to doubt. See `docs/m5-verifier.md`.
+
+**M6 conclusion:** deployment to mainnet added no new trust surface — same
+contracts, same invariants, same claim boundary as M0–M5. What changed is
+that the boundary now stands on real 0G mainnet infrastructure, verified
+independently of the deployment tooling itself. A real mainnet funding
+transaction remains unexecuted, disclosed as a limitation rather than
+implied; see `docs/m6-mainnet-deployment.md` for why.
 
 0G DA, deeper ERC-7857 integration, ERC-8004 interop, a hosted public
 explorer, a real 0G Storage uploader, and any Warrant extension (delegated

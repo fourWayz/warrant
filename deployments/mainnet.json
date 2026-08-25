@@ -3,21 +3,40 @@
   "name": "0g-mainnet",
   "rpcUrl": "https://evmrpc.0g.ai",
   "og": {
-    "ledgerManager": null,
-    "inferenceServing": null,
-    "note": "Not yet pulled and verified for mainnet. Testnet addresses (see testnet.json) were verified from 0glabs/0g-serving-contract's zgTestnetV4 deployment artifacts; the equivalent mainnet folder must be located and each address confirmed against eth_getCode before use. Do not assume parity with testnet addresses."
+    "ledgerManager": "0x2dE54c845Cd948B72D2e32e39586fe89607074E3",
+    "inferenceServing": "0x47340d900bdFec2BD393c626E12ea0656F938d84",
+    "source": "Pulled and independently verified against eth_getCode and getAllServices() on 0G mainnet before this deployment; not assumed from testnet parity."
   },
   "safe": {
     "singleton": "0x29fcB43b46531BcA003ddC8FCB67FFE91900C762",
     "proxyFactory": "0x4e1DCf7AD4e460CfD30791CCC4F9c8a4f820ec67",
     "version": "1.4.1",
-    "source": "safe-global/safe-deployments canonical registry, confirmed live via eth_getCode",
-    "deployTx": null,
-    "deployedAt": null
+    "source": "safe-global/safe-deployments canonical registry, confirmed live via eth_getCode before use. Reused as-is — not redeployed.",
+    "proxy": "0xdBC03a74dF7540bF4bEfA662765da0f2343CC0e7",
+    "proxyDeployTx": "0x1bba9fc82598b1cd661fba1019cbb14f1d3e0e178131db822e20c8625e9e2f60",
+    "owner": "0x522bC0c3919fF823173ca4145feEcE905F772ffE",
+    "threshold": 1,
+    "deployedAt": "2026-08-27T12:25:24Z"
   },
   "warrant": {
-    "registry": null,
-    "deployTx": null,
-    "deployedAt": null
+    "registry": "0x6bb1c3def8eFa555F59435b2F1D728BC56d6132D",
+    "registryDeployTx": "0x824e1f04451d6f0a46a4777c0f3c4b6ea620176df1d4d6193228e8961642ddc9",
+    "module": "0xd3bE7D80bF432B2B162cFbDc9B26404C9F909061",
+    "moduleDeployTx": "0xd0955bef7f680679e238a1443533dbe76b0a50085f7fb062468062e2c4fddb04",
+    "moduleEnableTx": "0xbd9aa6f842f34c85cbb1e4ec73e323f2b5c9c2c09f00510cd06f1ff435031370",
+    "mockAgenticId": "0xE7F4Ed4f0d5e882B13E5901ad72fc7ad978d64e6",
+    "mockAgenticIdDeployTx": "0xfaeb58def6112c8c704804bbc026726f409ab6bfc7e4bf5da44c13ac88b48338",
+    "mockAgenticIdMintTx": "0xdb6a40f2c9ec84b5924189ae2f957325e588f091f25b34c43f3e4d3897362963",
+    "warrantId": 1,
+    "createWarrantTx": "0x2f4371c4617df16294aa42b5f525ccd631ab8e09bea65fc02eccad82e54ad687",
+    "setExecutorTx": "0x56aa98e270d9f3b6d7d0fa781c1a1e6c59e6e6d2d9566a1635a67745543ad8e0",
+    "executor": "0x7606c2f503D6D0eFa663719a661Ef8Dc4786cdD4",
+    "allowedProvider": "0x44ba5021daDa2eDc84b4f5FC170b85F7bC51ef64",
+    "maxTotalSpend": "50000000000000000",
+    "startTime": 1787833491,
+    "expiry": 1788438291,
+    "blockNumber": 42780048,
+    "deployedAt": "2026-08-27T12:25:24Z",
+    "note": "MockAgenticId is a test stand-in for a real Agentic-ID/identity contract, deployed here only to anchor a warrant to a token owner on mainnet. It carries no independent security guarantee — see docs/m6-mainnet-deployment.md for scope. WarrantRegistry and WarrantModule are the unmodified, audited M0-M5 contracts; no logic was changed for this deployment."
   }
 }
