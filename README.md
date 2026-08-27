@@ -90,12 +90,18 @@ deployment transaction hash, are version-controlled in `deployments/`.
 
 | | Mainnet (chain 16661) | Testnet / Galileo (chain 16602) |
 |---|---|---|
-| `WarrantRegistry` | [`0x6bb1c3def8eFa555F59435b2F1D728BC56d6132D`](https://chainscan.0g.ai/address/0x6bb1c3def8eFa555F59435b2F1D728BC56d6132D) | `0xbd245E37b938D459C08f1c1f6F26028FDd8A98eD` |
+| `WarrantRegistry` | [`0x6bb1c3def8eFa555F59435b2F1D728BC56d6132D`](https://chainscan.0g.ai/address/0x6bb1c3def8eFa555F59435b2F1D728BC56d6132D) | [`0xbd245E37b938D459C08f1c1f6F26028FDd8A98eD`](https://chainscan-galileo.0g.ai/address/0xbd245E37b938D459C08f1c1f6F26028FDd8A98eD) |
 | `WarrantModule` | [`0xd3bE7D80bF432B2B162cFbDc9B26404C9F909061`](https://chainscan.0g.ai/address/0xd3bE7D80bF432B2B162cFbDc9B26404C9F909061) | see `deployments/testnet.json` |
 | Safe (agent wallet) | [`0xdBC03a74dF7540bF4bEfA662765da0f2343CC0e7`](https://chainscan.0g.ai/address/0xdBC03a74dF7540bF4bEfA662765da0f2343CC0e7) | self-deployed, see `deployments/testnet.json` |
 | `LedgerManager` (0G, reused) | `0x2dE54c845Cd948B72D2e32e39586fe89607074E3` | `0xE70830508dAc0A97e6c087c75f402f9Be669E406` |
 
-Independently verify the mainnet deployment yourself:
+Note: mainnet and testnet use **different explorer domains** —
+`chainscan.0g.ai` for mainnet, `chainscan-galileo.0g.ai` for testnet — not
+the same host with a network switch. If either explorer's page appears
+empty, its own indexer API confirms the data exists regardless:
+`curl "https://chainscan.0g.ai/open/api?module=account&action=txlist&address=0x6bb1c3def8eFa555F59435b2F1D728BC56d6132D"`
+(swap in `chainscan-galileo.0g.ai` for testnet). The commands below are the
+authoritative, explorer-independent way to verify:
 
 ```
 cast code 0x6bb1c3def8eFa555F59435b2F1D728BC56d6132D --rpc-url https://evmrpc.0g.ai
