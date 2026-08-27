@@ -68,6 +68,38 @@ deliberate choice of depth over breadth: a real, audited, mainnet-verified
 enforcement boundary on two modules rather than shallow coverage across
 five.
 
+## Setup
+
+Requirements: [Foundry](https://getfoundry.sh) and Node.js 18+. Nothing
+below needs an RPC key, a funded wallet, or a `.env` file — it all runs
+against local state or offline fixtures.
+
+```
+git clone https://github.com/fourWayz/warrant.git
+cd warrant
+git submodule update --init --recursive   # pulls OpenZeppelin + Safe smart-account into contracts/lib
+
+cd contracts
+forge build
+forge test                                # 49 tests: 46 unit + 3 invariant campaigns, 60,000 randomized calls total, zero violations
+
+cd ../sdk/warrant-client
+node --test test/*.test.js                # 21 tests, zero runtime dependencies, fully offline
+```
+
+(`npm test` runs the same command but shells out through the OS's default
+script runner, which fails from a UNC-style working directory on Windows —
+run `node --test test/*.test.js` directly if you hit that.)
+
+Redeploying is not required to verify this submission — the audited
+contracts are already live on both networks, see "Deployments" below —
+but if you want to: `contracts/script/` holds the deploy scripts, each
+reading a funded `PRIVATE_KEY` from `.env` (never committed) and the
+RPC endpoints already configured in `contracts/foundry.toml`.
+
+Network access is only needed for the live verification examples below —
+they hit a public 0G RPC endpoint, no API key required.
+
 ## Try it against real, live Galileo data right now
 
 ```
