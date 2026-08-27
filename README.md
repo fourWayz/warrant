@@ -1,5 +1,10 @@
 # Warrant
 
+**An AI agent's wallet cannot fund a 0G Compute provider beyond the policy
+its owner set — enforced on-chain, atomically, before the funds leave the
+wallet. Live on 0G mainnet today; see "Deployments" below to verify it
+yourself in under a minute.**
+
 Warrant is an on-chain spend-authorization and audit protocol for AI agents
 using 0G Compute. It enforces one boundary: an agent wallet may not fund a
 0G Compute provider account beyond the policy its owner set for it, and
@@ -28,6 +33,40 @@ single call that moves funds toward a provider —
 See `docs/threat-model.md` for the full boundary and `docs/bypass-analysis.md`
 for every path considered and why it is either governed by Warrant or
 explicitly out of scope.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    Owner -->|sets policy| WarrantRegistry
+    Owner -->|owns/signs| Safe
+    Safe -->|enables| WarrantModule
+    Executor -->|executeTransfer| WarrantModule
+    WarrantModule -->|recordSpend: policy check| WarrantRegistry
+    WarrantModule -->|execTransactionFromModule| Safe
+    Safe -->|transferFund| LedgerManager
+    LedgerManager -->|funds| Sub[InferenceServing sub-account]
+    Sub -.provider-triggered, unmodified.-> Settle[settleFeesWithTEE]
+```
+
+WarrantModule's only external surface is assigning an executor and letting
+that executor request a transfer; every request is checked against
+WarrantRegistry before the module builds the one calldata it is capable of
+building. `settleFeesWithTEE` is untouched 0G code, triggered by the
+provider, not by Warrant.
+
+## 0G components used
+
+Integrated and load-bearing: **0G Chain** (mainnet + testnet deployment
+target) and **0G Compute** — `LedgerManager`/`InferenceServing`, both the
+funding boundary Warrant enforces and the settlement path its compatibility
+finding investigates at source level. Not integrated in this submission:
+0G Storage, 0G DA, 0G Pay, and the real Agentic ID/ERC-7857 standard —
+`MockAgenticId` is a plain test-fixture ERC-721 used only to anchor a
+warrant to a token owner, not an Agentic ID integration. This is a
+deliberate choice of depth over breadth: a real, audited, mainnet-verified
+enforcement boundary on two modules rather than shallow coverage across
+five.
 
 ## Try it against real, live Galileo data right now
 
@@ -107,8 +146,9 @@ layer (`sdk/warrant-client`) that correlates a Warrant-authorized transfer
 against native 0G settlement events — see `docs/m4-reconciliation.md`. M5:
 a CLI verifier over that same library, warrant-level (not just
 single-transfer) reconciliation, and a property-based fuzz suite proving
-the spend-cap and allowlist invariants across 128,000 randomized calls with
-zero violations — see `docs/m5-verifier.md`. M6: the same, unmodified
+the spend-cap and allowlist invariants across 60,000 randomized calls (three
+invariants, reproducible via `forge test`) with zero violations — see
+`docs/m5-verifier.md`. M6: the same, unmodified
 `WarrantRegistry` and `WarrantModule` deployed to real 0G mainnet, reusing
 mainnet's own live Safe and 0G Compute infrastructure rather than
 redeploying it, with every claim independently re-verified against the
@@ -132,7 +172,7 @@ distinction this rests on.
 
 **M5 conclusion:** the audit half of Warrant's thesis is now something
 anyone can run themselves, against real Galileo data, without trusting a
-backend — and the enforcement half has been checked against 128,000
+backend — and the enforcement half has been checked against 60,000
 randomized adversarial call sequences, not just the cases written by hand.
 Neither changes what Warrant claims; both make the existing claims easier
 to verify and harder to doubt. See `docs/m5-verifier.md`.
