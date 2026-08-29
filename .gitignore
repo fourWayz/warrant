@@ -8,6 +8,7 @@ contracts/lib/
 node_modules/
 dist/
 .next/
+*.tsbuildinfo
 
 # Env / secrets
 .env
