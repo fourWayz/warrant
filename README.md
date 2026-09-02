@@ -68,51 +68,13 @@ deliberate choice of depth over breadth: a real, audited, mainnet-verified
 enforcement boundary on two modules rather than shallow coverage across
 five.
 
-## Setup
-
-Requirements: [Foundry](https://getfoundry.sh) and Node.js 18+. Nothing
-below needs an RPC key, a funded wallet, or a `.env` file — it all runs
-against local state or offline fixtures.
-
-```
-git clone https://github.com/fourWayz/warrant.git
-cd warrant
-git submodule update --init --recursive   # pulls OpenZeppelin + Safe smart-account into contracts/lib
-
-cd contracts
-forge build
-forge test                                # 49 tests: 46 unit + 3 invariant campaigns, 60,000 randomized calls total, zero violations
-
-cd ../sdk/warrant-client
-node --test test/*.test.js                # 21 tests, zero runtime dependencies, fully offline
-```
-
-(`npm test` runs the same command but shells out through the OS's default
-script runner, which fails from a UNC-style working directory on Windows —
-run `node --test test/*.test.js` directly if you hit that.)
-
-Redeploying is not required to verify this submission — the audited
-contracts are already live on both networks, see "Deployments" below —
-but if you want to: `contracts/script/` holds the deploy scripts, each
-reading a funded `PRIVATE_KEY` from `.env` (never committed) and the
-RPC endpoints already configured in `contracts/foundry.toml`.
-
-Network access is only needed for the live verification examples below —
-they hit a public 0G RPC endpoint, no API key required.
-
-## Try it against real, live Galileo data right now
-
-```
-cd sdk/warrant-client
-node bin/warrant-verify.js --tx 0x635cd6cca736a2df02e8734f5b8fdf6ac54fb795e83356b40207fbd28cea68d2 \
-  --module 0xf47E11f9E499994C96b0C2e9ce1b7978db9416d8
-```
-
-That transaction is real — the actual Track A transfer proven live in M3.
-The CLI reads it directly from 0G Galileo and reports
-`AUTHORIZED_ONLY`: funded, no native settlement ever observed, exactly as
-honest given the Compute compatibility finding below. Nothing here is
-canned output.
+**A real ecosystem boundary, found and disclosed, not worked around:** 0G
+Compute's current inference session authentication recovers an ECDSA
+signer from a raw signature; a Safe has no private key to produce one,
+confirmed by reading the provider and SDK source directly. That makes
+Safe-based inference authentication incompatible with the current public
+Compute flow — Warrant does not claim to control native settlement, and
+this is why. See `docs/compute-compatibility-finding.md`.
 
 ## Deployments
 
@@ -149,6 +111,81 @@ executed; that path is proven live on testnet only (Track A, M3) — mainnet's
 `MIN_ACCOUNT_BALANCE`/`MIN_TRANSFER_AMOUNT` exceed the funded deployer's
 balance, a disclosed limitation, not a gap papered over.
 
+## Try it against real, live Galileo data right now
+
+```
+cd sdk/warrant-client
+node bin/warrant-verify.js --tx 0x635cd6cca736a2df02e8734f5b8fdf6ac54fb795e83356b40207fbd28cea68d2 \
+  --module 0xf47E11f9E499994C96b0C2e9ce1b7978db9416d8
+```
+
+That transaction is real — the actual Track A transfer proven live in M3.
+The CLI reads it directly from 0G Galileo and reports
+`AUTHORIZED_ONLY`: funded, no native settlement ever observed, exactly as
+honest given the Compute compatibility finding above. Nothing here is
+canned output.
+
+## Demo frontend
+
+`apps/web` is a Next.js product demo over the same contracts and the same
+`@warrant/client` reconciliation library documented above — it adds no new
+protocol behavior and reads/writes nothing this README doesn't already
+describe.
+
+```
+pnpm install
+pnpm --filter @warrant/web dev
+```
+
+| Route | What it does | Needs a wallet? |
+|---|---|---|
+| `/` | Thesis, architecture, live network status (both chains) | No |
+| `/warrants` , `/warrants/[network]/[id]` | Live-read policy, budget, and a real `eth_call` policy simulator | No |
+| `/verify` | Runs `@warrant/client`'s real reconciliation against any tx hash | No |
+| `/activity` | Live event history per warrant, read via indexed `eth_getLogs` | No |
+| `/create` | Submits two real transactions to 0G Galileo (mint a demo Agentic ID, then `createWarrant`) | **Yes** — testnet A0GI |
+| `/about` | Integration scope, evidence, and boundaries, with links back into `docs/` | No |
+
+Every other route is strictly read-only against live mainnet/testnet RPC —
+no wallet, no backend, no cached data. `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID`
+is optional (falls back to a placeholder; injected wallets like MetaMask
+work without it) and is the only environment variable the app reads. To
+deploy: `pnpm --filter @warrant/web build && pnpm --filter @warrant/web start`,
+or point a platform like Vercel at `apps/web` as the project root — it
+auto-detects the pnpm workspace.
+
+## Setup — build and test everything above yourself
+
+Requirements: [Foundry](https://getfoundry.sh) and Node.js 18+. Nothing
+below needs an RPC key, a funded wallet, or a `.env` file — it all runs
+against local state or offline fixtures.
+
+```
+git clone https://github.com/fourWayz/warrant.git
+cd warrant
+git submodule update --init --recursive   # pulls OpenZeppelin + Safe smart-account into contracts/lib
+
+cd contracts
+forge build
+forge test                                # 49 tests: 46 unit + 3 invariant campaigns, 60,000 randomized calls total, zero violations
+
+cd ../sdk/warrant-client
+node --test test/*.test.js                # 21 tests, zero runtime dependencies, fully offline
+```
+
+(`npm test` runs the same command but shells out through the OS's default
+script runner, which fails from a UNC-style working directory on Windows —
+run `node --test test/*.test.js` directly if you hit that.)
+
+Redeploying is not required to verify this submission — the audited
+contracts are already live on both networks, see "Deployments" above — but
+if you want to: `contracts/script/` holds the deploy scripts, each reading
+a funded `PRIVATE_KEY` from `.env` (never committed) and the RPC endpoints
+already configured in `contracts/foundry.toml`.
+
+Network access is only needed for the live verification examples above and
+the demo frontend — they hit a public 0G RPC endpoint, no API key required.
+
 ## Evidence labeling
 
 Used consistently across this README and `docs/`:
@@ -166,64 +203,28 @@ Used consistently across this README and `docs/`:
 ```
 contracts/     Foundry project — WarrantRegistry, WarrantModule, invariant fuzz suite, deploy scripts
 sdk/           warrant-client: dependency-free reconciliation library + CLI verifier (M4/M5)
-apps/explorer  Public, read-only verifier (FUTURE EXTENSION)
-services/indexer  Log-decoding helper for the explorer (FUTURE EXTENSION)
+apps/web       Next.js product demo over the contracts + SDK above — see "Demo frontend" above
+apps/explorer  Public, read-only verifier (FUTURE EXTENSION, unbuilt)
+services/indexer  Log-decoding helper for the explorer (FUTURE EXTENSION, unbuilt)
 docs/          Threat model, bypass analysis, design notes
 deployments/   Version-controlled record of every deployed address, per chain
 ```
 
 ## Status
 
-M0–M6 complete. M0–M2: repository scaffold, testnet infrastructure,
-`WarrantRegistry`, `WarrantModule`, and the adversarial test suite (46
-tests). M3: Warrant's core security boundary proven live on real 0G Galileo
-contracts (see `docs/m3-tracks.md`), and a compatibility investigation into
-0G Compute's own request/settlement flow (see
-`docs/compute-compatibility-finding.md`). M4: the read-only reconciliation
-layer (`sdk/warrant-client`) that correlates a Warrant-authorized transfer
-against native 0G settlement events — see `docs/m4-reconciliation.md`. M5:
-a CLI verifier over that same library, warrant-level (not just
-single-transfer) reconciliation, and a property-based fuzz suite proving
-the spend-cap and allowlist invariants across 60,000 randomized calls (three
-invariants, reproducible via `forge test`) with zero violations — see
-`docs/m5-verifier.md`. M6: the same, unmodified
-`WarrantRegistry` and `WarrantModule` deployed to real 0G mainnet, reusing
-mainnet's own live Safe and 0G Compute infrastructure rather than
-redeploying it, with every claim independently re-verified against the
-chain itself — see `docs/m6-mainnet-deployment.md`.
+M0–M6 complete: `WarrantRegistry`/`WarrantModule` implemented and
+adversarially tested (M0–M2, 46 unit tests); the security boundary proven
+live on 0G Galileo alongside the source-traced Compute authentication
+finding above (M3, `docs/m3-tracks.md`, `docs/compute-compatibility-finding.md`);
+a read-only settlement-reconciliation library (M4, `docs/m4-reconciliation.md`);
+a CLI verifier and a 60,000-call invariant fuzz suite with zero violations
+(M5, `docs/m5-verifier.md`); and deployment of the same, unmodified
+contracts to 0G mainnet with independent re-verification (M6,
+`docs/m6-mainnet-deployment.md`).
 
-**M3 conclusion:** Warrant's core security boundary is proven on real 0G
-infrastructure — a Safe-controlled agent cannot authorize provider funding
-outside its owner-defined Warrant policy. 0G Compute's current inference
-authentication requires the funded account itself to possess an ECDSA
-private key, making Safe-based inference authentication incompatible with
-the current public Compute flow. Warrant does not claim to control native
-Compute settlement; the incompatibility is documented as an ecosystem
-integration boundary, not hidden or worked around.
-
-**M4 conclusion:** Warrant verifies authorization and settlement
-correlation. It does not verify compute quality. The reconciliation layer
-never moves funds, never alters policy, and its own failure or absence
-cannot weaken anything M1–M3 already proved — see
-`docs/m4-reconciliation.md` for the authorized/funded/settled/correlated
-distinction this rests on.
-
-**M5 conclusion:** the audit half of Warrant's thesis is now something
-anyone can run themselves, against real Galileo data, without trusting a
-backend — and the enforcement half has been checked against 60,000
-randomized adversarial call sequences, not just the cases written by hand.
-Neither changes what Warrant claims; both make the existing claims easier
-to verify and harder to doubt. See `docs/m5-verifier.md`.
-
-**M6 conclusion:** deployment to mainnet added no new trust surface — same
-contracts, same invariants, same claim boundary as M0–M5. What changed is
-that the boundary now stands on real 0G mainnet infrastructure, verified
-independently of the deployment tooling itself. A real mainnet funding
-transaction remains unexecuted, disclosed as a limitation rather than
-implied; see `docs/m6-mainnet-deployment.md` for why.
-
-0G DA, deeper ERC-7857 integration, ERC-8004 interop, a hosted public
-explorer, a real 0G Storage uploader, and any Warrant extension (delegated
-capability graphs, fine-tune lineage, provider bonding) remain future
-extensions, not started — see the M4 architecture reassessment for why
-each was deferred or rejected.
+Nothing built after M3 widened what Warrant claims — M4 and M5 made an
+existing claim easier to verify, M6 moved it onto real mainnet
+infrastructure. 0G DA, 0G Storage, ERC-8004, a real Agentic ID/ERC-7857
+integration, a hosted explorer, and any Warrant policy extension remain
+deliberately out of scope — see "What M4 explicitly does not do" in
+`docs/m4-reconciliation.md` for why each was considered and set aside.
