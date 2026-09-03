@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { useAccount, usePublicClient, useWriteContract } from 'wagmi'
-import { parseEther } from 'viem'
+import { parseEther, type PublicClient } from 'viem'
 import { ArrowRight, CheckCircle2, Loader2, ShieldCheck, XCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -30,6 +30,32 @@ function randomTokenId(): bigint {
   let hex = '0x'
   for (const b of bytes) hex += b.toString(16).padStart(2, '0')
   return BigInt(hex)
+}
+
+// 0G Galileo's public RPC sometimes answers eth_getTransactionReceipt with a
+// hard JSON-RPC error ("Missing or invalid parameters") for a tx that hasn't
+// finished indexing yet, instead of the standard `null` "not mined yet"
+// response. viem's own waitForTransactionReceipt only auto-retries a `null`
+// result, not a thrown RPC error, so it surfaces this as a failure even
+// though the transaction is mined and successful moments later (confirmed
+// directly against the RPC during development — this is an 0G RPC quirk,
+// not a wrong transaction). Retry the wait a few times before giving up.
+async function waitForReceiptWithRetry(
+  client: PublicClient,
+  hash: `0x${string}`,
+  attempts = 5,
+  delayMs = 1500
+) {
+  let lastError: unknown
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await client.waitForTransactionReceipt({ hash })
+    } catch (err) {
+      lastError = err
+      await new Promise((r) => setTimeout(r, delayMs))
+    }
+  }
+  throw lastError
 }
 
 export function CreateWarrantFlow() {
@@ -63,7 +89,7 @@ export function CreateWarrantFlow() {
         args: [address, tokenId],
       })
       setMintTx(mintHash)
-      await publicClient.waitForTransactionReceipt({ hash: mintHash })
+      await waitForReceiptWithRetry(publicClient, mintHash)
 
       setStep('creating')
       const startTime = Math.floor(Date.now() / 1000)
@@ -87,7 +113,7 @@ export function CreateWarrantFlow() {
         ],
       })
       setCreateTx(createHash)
-      const receipt = await publicClient.waitForTransactionReceipt({ hash: createHash })
+      const receipt = await waitForReceiptWithRetry(publicClient, createHash)
 
       const createdLog = receipt.logs.find(
         (l) => l.address.toLowerCase() === TESTNET.contracts.registry.toLowerCase() && l.topics.length === 4
