@@ -210,21 +210,3 @@ docs/          Threat model, bypass analysis, design notes
 deployments/   Version-controlled record of every deployed address, per chain
 ```
 
-## Status
-
-M0–M6 complete: `WarrantRegistry`/`WarrantModule` implemented and
-adversarially tested (M0–M2, 46 unit tests); the security boundary proven
-live on 0G Galileo alongside the source-traced Compute authentication
-finding above (M3, `docs/m3-tracks.md`, `docs/compute-compatibility-finding.md`);
-a read-only settlement-reconciliation library (M4, `docs/m4-reconciliation.md`);
-a CLI verifier and a 60,000-call invariant fuzz suite with zero violations
-(M5, `docs/m5-verifier.md`); and deployment of the same, unmodified
-contracts to 0G mainnet with independent re-verification (M6,
-`docs/m6-mainnet-deployment.md`).
-
-Nothing built after M3 widened what Warrant claims — M4 and M5 made an
-existing claim easier to verify, M6 moved it onto real mainnet
-infrastructure. 0G DA, 0G Storage, ERC-8004, a real Agentic ID/ERC-7857
-integration, a hosted explorer, and any Warrant policy extension remain
-deliberately out of scope — see "What M4 explicitly does not do" in
-`docs/m4-reconciliation.md` for why each was considered and set aside.
